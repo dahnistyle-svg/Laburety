@@ -158,8 +158,9 @@ html.dark select:not(.a4-page *) {
   border-color: #334155 !important; /* slate-700 */
 }
 
-html.dark input::placeholder:not(.a4-page *),
-html.dark textarea::placeholder:not(.a4-page *) {
+/* CORRECCIÓN 3: el :not() va antes del ::placeholder (orden válido) */
+html.dark input:not(.a4-page *)::placeholder,
+html.dark textarea:not(.a4-page *)::placeholder {
   color: #64748b !important; /* slate-500 */
 }
 
@@ -221,11 +222,10 @@ html.dark .a4-page-sheet * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  
+
   *, *::before, *::after {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
     box-sizing: border-box !important;
   }
 
@@ -245,10 +245,11 @@ html.dark .a4-page-sheet * {
   }
 
   /* Ocultar toda la interfaz de la app, barras, paneles de edición y controles */
+  /* CORRECCIÓN 1: footer, nav y aside dentro de la hoja A4 ya no se ocultan */
   header:not(.a4-page *),
-  footer,
-  nav,
-  aside,
+  footer:not(.a4-page *),
+  nav:not(.a4-page *),
+  aside:not(.a4-page *),
   button,
   input,
   select,
@@ -272,8 +273,9 @@ html.dark .a4-page-sheet * {
   }
 
   /* Anular escalado de zoom del visor de previsualización */
-  [style*="scale"],
-  [style*="transform"] {
+  /* CORRECCIÓN 2: solo afecta lo que está fuera de la hoja A4 */
+  [style*="scale"]:not(.a4-page *),
+  [style*="transform"]:not(.a4-page *) {
     transform: none !important;
     width: 100% !important;
     margin: 0 !important;
@@ -285,9 +287,9 @@ html.dark .a4-page-sheet * {
     display: block !important;
     position: relative !important;
     width: 210mm !important;
-    height: 297mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     box-sizing: border-box !important;
     margin: 0 auto !important;
     box-shadow: none !important;
@@ -295,7 +297,7 @@ html.dark .a4-page-sheet * {
     border-radius: 0 !important;
     background-color: #ffffff !important;
     background: #ffffff !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     page-break-after: always !important;
     break-after: page !important;
     page-break-inside: avoid !important;
@@ -309,10 +311,10 @@ html.dark .a4-page-sheet * {
     break-after: auto !important;
   }
 
-  /* Asegurar que cabeceras de plantillas como Modern Professional permanezcan visibles */
+  /* Asegurar que cabeceras de plantillas permanezcan visibles respetando su layout flex/block */
   .a4-page header,
   .a4-page-sheet header {
-    display: block !important;
+    visibility: visible !important;
   }
 
   /* Forzar impresión de colores de fondo corporativos y encabezados */
