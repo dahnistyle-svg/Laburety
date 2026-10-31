@@ -1,0 +1,333 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #D2E2DA; /* Capa 1: Verde Salvia / Eucalipto Suave */
+    color: #0F2F26;
+  }
+}
+
+.font-garamond {
+  font-family: 'EB Garamond', Georgia, serif;
+}
+
+.font-merriweather {
+  font-family: 'Merriweather', Georgia, serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-sans-pro {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.font-mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================================
+   EFECTO TORNASOLADO ANIMADO (TEXTO LÍQUIDO / GRADIENTE)
+   ======================================================== */
+@keyframes text-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-text-gradient {
+  background-size: 200% auto;
+  animation: text-gradient 4s linear infinite;
+}
+
+/* ========================================================
+   EFECTO DE FONDO TORNASOLADO ANIMADO (LIQUID GRADIENT BANNER)
+   ======================================================== */
+@keyframes bg-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-bg-gradient {
+  background-size: 200% auto;
+  animation: bg-gradient 8s linear infinite;
+}
+
+/* ========================================================
+   CAPA 3: FORMULARIOS E INPUTS DESCANSA-VISTA (MODO CLARO)
+   ======================================================== */
+input:not([type="checkbox"]):not([type="radio"]):not(.a4-page *):not(.dark input),
+textarea:not(.a4-page *):not(.dark textarea),
+select:not(.a4-page *):not(.dark select) {
+  background-color: #FAFCFB;
+  border-color: #A8C4B6;
+  color: #0F2F26;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not(.a4-page *):not(.dark input):focus,
+textarea:not(.a4-page *):not(.dark textarea):focus,
+select:not(.a4-page *):not(.dark select):focus {
+  border-color: #0D7A5F;
+  box-shadow: 0 0 0 2px rgba(13, 122, 95, 0.15);
+}
+
+/* Dark Mode Global Styles - Elegant Slate Palette */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f172a; /* slate-900 */
+  color: #f8fafc; /* slate-50 */
+}
+
+/* Modales y backdrop */
+html.dark .fixed.inset-0.bg-black\/50 {
+  background-color: rgba(2, 6, 23, 0.75) !important;
+}
+
+/* Fondos de tarjetas, paneles y barras */
+html.dark .bg-white:not(.a4-page):not(.a4-page *) {
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+html.dark .bg-neutral-50:not(.a4-page):not(.a4-page *),
+html.dark .bg-neutral-50\/50:not(.a4-page):not(.a4-page *),
+html.dark .bg-neutral-50\/80:not(.a4-page):not(.a4-page *) {
+  background-color: #0f172a !important; /* slate-900 */
+}
+
+html.dark .bg-neutral-100:not(.a4-page):not(.a4-page *),
+html.dark .hover\:bg-neutral-100:hover:not(.a4-page):not(.a4-page *),
+html.dark .hover\:bg-neutral-50:hover:not(.a4-page):not(.a4-page *) {
+  background-color: #334155 !important; /* slate-700 */
+}
+
+html.dark .bg-neutral-100\/80:not(.a4-page):not(.a4-page *),
+html.dark .bg-neutral-200\/50:not(.a4-page):not(.a4-page *) {
+  background-color: #0b1120 !important; /* slate-950 backdrop para lienzo */
+}
+
+/* Bordes */
+html.dark .border-neutral-200:not(.a4-page):not(.a4-page *),
+html.dark .border-neutral-100:not(.a4-page):not(.a4-page *) {
+  border-color: #334155 !important; /* slate-700 */
+}
+
+html.dark .border-neutral-300:not(.a4-page):not(.a4-page *) {
+  border-color: #475569 !important; /* slate-600 */
+}
+
+html.dark .divide-neutral-200 > :not([hidden]) ~ :not([hidden]):not(.a4-page *) {
+  border-color: #334155 !important;
+}
+
+/* Textos */
+html.dark .text-neutral-900:not(.a4-page):not(.a4-page *) {
+  color: #f8fafc !important; /* slate-50 */
+}
+
+html.dark .text-neutral-800:not(.a4-page):not(.a4-page *) {
+  color: #f1f5f9 !important; /* slate-100 */
+}
+
+html.dark .text-neutral-700:not(.a4-page):not(.a4-page *) {
+  color: #e2e8f0 !important; /* slate-200 */
+}
+
+html.dark .text-neutral-600:not(.a4-page):not(.a4-page *) {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+html.dark .text-neutral-500:not(.a4-page):not(.a4-page *) {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Inputs, Textareas, Selects en Dark Mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not(.a4-page *),
+html.dark textarea:not(.a4-page *),
+html.dark select:not(.a4-page *) {
+  background-color: #0f172a !important; /* slate-900 */
+  color: #f8fafc !important;
+  border-color: #334155 !important; /* slate-700 */
+}
+
+html.dark input::placeholder:not(.a4-page *),
+html.dark textarea::placeholder:not(.a4-page *) {
+  color: #64748b !important; /* slate-500 */
+}
+
+/* Botones secundarios */
+html.dark button.bg-white:not(.a4-page):not(.a4-page *) {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+html.dark button.bg-neutral-100:not(.a4-page):not(.a4-page *) {
+  background-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Botones oscuros principales */
+html.dark button.bg-neutral-900:not(.a4-page):not(.a4-page *) {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.dark button.bg-neutral-900:hover:not(.a4-page):not(.a4-page *) {
+  background-color: #e2e8f0 !important;
+}
+
+/* ========================================================
+   AISLAMIENTO ESTRICTO DE LA HOJA A4 (100% INTACTO Y BLANCO)
+   ======================================================== */
+.a4-page,
+.a4-page-sheet,
+.a4-page *,
+.a4-page-sheet *,
+#staging-root,
+#staging-root * {
+  color-scheme: light !important;
+}
+
+html.dark .a4-page,
+html.dark .a4-page-sheet {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .a4-page *,
+html.dark .a4-page-sheet * {
+  box-sizing: border-box;
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
+  html, body, #root {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: geometricPrecision !important;
+  }
+
+  /* Ocultar toda la interfaz de la app, barras, paneles de edición y controles */
+  header:not(.a4-page *),
+  footer,
+  nav,
+  aside,
+  button,
+  input,
+  select,
+  textarea,
+  .no-print,
+  .print\:hidden,
+  [data-html2canvas-ignore="true"],
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  /* Resetear contenedores exteriores del layout para que no clipeen ni agreguen fondos */
+  main,
+  div:not(.a4-page):not(.a4-page *) {
+    overflow: visible !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Anular escalado de zoom del visor de previsualización */
+  [style*="scale"],
+  [style*="transform"] {
+    transform: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Garantizar hojas A4 independientes, sin cortes a la mitad y con fondo blanco intacto */
+  .a4-page-sheet,
+  .a4-page {
+    display: block !important;
+    position: relative !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    transform: none !important;
+  }
+
+  .a4-page-sheet:last-child,
+  .a4-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  /* Asegurar que cabeceras de plantillas como Modern Professional permanezcan visibles */
+  .a4-page header,
+  .a4-page-sheet header {
+    display: block !important;
+  }
+
+  /* Forzar impresión de colores de fondo corporativos y encabezados */
+  [class*="bg-"] {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .page-break-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+}

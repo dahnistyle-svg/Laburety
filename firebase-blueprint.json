@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Root document storing user master library and AI configuration",
+      "type": "object",
+      "properties": {
+        "masterLibrary": {
+          "type": "object",
+          "description": "Master library containing experiences, education, etc."
+        },
+        "aiSettings": {
+          "type": "object",
+          "description": "AI settings and preferences"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last server update timestamp"
+        },
+        "clientLastSaved": {
+          "type": "string",
+          "description": "Client ISO timestamp"
+        }
+      }
+    },
+    "Resume": {
+      "title": "Resume",
+      "description": "Individual curriculum vitae document",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "objective": {
+          "type": "string"
+        },
+        "templateId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "sectionOrder": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "templateId"
+      ]
+    },
+    "Company": {
+      "title": "Company",
+      "description": "Company radar target or application status",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "status"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User root document with master library and AI settings"
+    },
+    "/users/{userId}/resumes/{resumeId}": {
+      "schema": "Resume",
+      "description": "Collection of resumes created by the user"
+    },
+    "/users/{userId}/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Collection of companies in user application radar"
+    }
+  }
+}
