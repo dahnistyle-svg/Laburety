@@ -311,6 +311,15 @@ html.dark .a4-page-sheet * {
     break-after: auto !important;
   }
 
+  /* CORRECCIÓN 4: en impresión/PDF el modo oscuro no debe dibujar sombra ni borde
+     alrededor de la hoja. La regla "html.dark .a4-page" (más arriba) tiene mayor
+     especificidad que ".a4-page", así que hay que anularla con el mismo selector. */
+  html.dark .a4-page,
+  html.dark .a4-page-sheet {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
   /* Asegurar que cabeceras de plantillas permanezcan visibles respetando su layout flex/block */
   .a4-page header,
   .a4-page-sheet header {
