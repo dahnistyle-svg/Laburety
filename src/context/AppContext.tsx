@@ -48,7 +48,7 @@ interface AppContextType {
   updatePersonal: (data: Partial<PersonalData>) => void;
   updateContact: (data: Partial<ContactInfo>) => void;
   updateAbout: (data: Partial<AboutProfile>) => void;
-  
+
   // Profile Variants CRUD (Multiple Titles & Summaries)
   addProfileVariant: (variant: Omit<ProfileVariant, "id">) => ProfileVariant;
   updateProfileVariant: (id: string, variant: Partial<ProfileVariant>) => void;
@@ -179,6 +179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [lastSaved, setLastSaved] = useState<string>(() => StorageService.getLastSavedTime());
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => FirebaseSyncService.getStatus());
+
   useEffect(() => {
     return FirebaseSyncService.onStatusChange((status) => {
       setSyncStatus(status);
@@ -206,7 +207,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const triggerCloudSync = useCallback(async () => {
     await FirebaseSyncService.syncAllToFirestore(library, resumes, companies, aiSettings);
   }, [library, resumes, companies, aiSettings]);
-
 
   // Authentication State
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
@@ -309,64 +309,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, []);
 
-  // Sincronización automática de Secciones Personalizadas con los CVs existentes
+  // Sincronización de estructura de Secciones Personalizadas con los CVs existentes
+  // (Agrega nuevas secciones a sectionOrder, pero RESPETA si el usuario dejó 0 ítems activos en un CV en limpio)
   useEffect(() => {
     if (!library.customSections || library.customSections.length === 0) return;
     setResumes((prevResumes) => {
       let changed = false;
-      const allLibraryCustomItemIds = library.customSections.flatMap((cs) => cs.items.map((it) => it.id));
 
       const updated = prevResumes.map((resume) => {
-        // Verificar si faltan secciones en sectionOrder
         const missingSecIds = library.customSections
           .map((cs) => cs.id)
           .filter((id) => !resume.sectionOrder.includes(id));
 
-        // Determinar qué ítems personalizados deben agregarse/activarse por defecto
-        let newSelectedCustomItemIds = resume.selectedCustomItemIds;
-        let itemsChanged = false;
+        const needsArrayInit = !Array.isArray(resume.selectedCustomItemIds);
 
-        if (!newSelectedCustomItemIds) {
-          // Si no existía selectedCustomItemIds, activar todos los ítems por defecto
-          newSelectedCustomItemIds = allLibraryCustomItemIds;
-          itemsChanged = true;
-        } else {
-          // Si ya existía, revisar si alguna sección personalizada no tiene ninguno de sus ítems seleccionados
-          // (por ejemplo una sección nueva como "OTROS:" con "Licencia de Conducir")
-          const itemsToAdd: string[] = [];
-          library.customSections.forEach((cs) => {
-            const hasAnySelected = cs.items.some((it) => newSelectedCustomItemIds!.includes(it.id));
-            if (!hasAnySelected && cs.items.length > 0) {
-              // Activar por defecto todos los ítems de esta sección
-              cs.items.forEach((it) => itemsToAdd.push(it.id));
-            } else if (missingSecIds.includes(cs.id)) {
-              cs.items.forEach((it) => itemsToAdd.push(it.id));
-            }
-          });
-
-          if (itemsToAdd.length > 0) {
-            const merged = Array.from(new Set([...newSelectedCustomItemIds, ...itemsToAdd]));
-            if (merged.length !== newSelectedCustomItemIds.length) {
-              newSelectedCustomItemIds = merged;
-              itemsChanged = true;
-            }
-          }
-        }
-
-        // Si no faltan secciones y no cambiaron los ítems, no mutar este CV
-        if (missingSecIds.length === 0 && !itemsChanged) return resume;
+        if (missingSecIds.length === 0 && !needsArrayInit) return resume;
 
         changed = true;
-        const newSectionOrder = missingSecIds.length > 0 ? [...resume.sectionOrder, ...missingSecIds] : resume.sectionOrder;
-        const newSelectedSecIds = Array.from(
-          new Set([...(resume.selectedCustomSectionIds || []), ...library.customSections.map((cs) => cs.id)])
-        );
+        const newSectionOrder =
+          missingSecIds.length > 0 ? [...resume.sectionOrder, ...missingSecIds] : resume.sectionOrder;
 
         return {
           ...resume,
           sectionOrder: newSectionOrder,
-          selectedCustomSectionIds: newSelectedSecIds,
-          selectedCustomItemIds: newSelectedCustomItemIds,
+          selectedCustomItemIds: Array.isArray(resume.selectedCustomItemIds)
+            ? resume.selectedCustomItemIds
+            : [],
           updatedAt: new Date().toISOString(),
         };
       });
@@ -405,7 +373,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `comp-${Date.now()}`,
       updatedAt: new Date().toISOString(),
     };
-    // Autocompletar con fecha de hoy si se crea directamente en 'enviado' y está vacío
     if (newCompany.status === "enviado" && !newCompany.appliedDate) {
       newCompany.appliedDate = new Date().toISOString().slice(0, 10);
     }
@@ -418,7 +385,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map((c) => {
         if (c.id !== id) return c;
         const updated = { ...c, ...updates, updatedAt: new Date().toISOString() };
-        // Si el usuario cambia el estado a 'enviado' y appliedDate estaba vacío, autocompletar con hoy
         if (updates.status === "enviado" && !updated.appliedDate) {
           updated.appliedDate = new Date().toISOString().slice(0, 10);
         }
@@ -503,7 +469,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLibrary((prev) => {
       const currentList = prev.profileVariants || [];
       if (currentList.length <= 1) {
-        // Do not delete the only remaining profile
         return prev;
       }
       return {
@@ -560,7 +525,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       experiences: prev.experiences.filter((e) => e.id !== id),
     }));
-    // Remove from resumes
     setResumes((prev) =>
       prev.map((r) => ({
         ...r,
@@ -833,26 +797,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       customSections: [...prev.customSections, newSec],
     }));
 
-    // Sincronizar de inmediato con todos los CVs existentes
-    const newItemIds = (newSec.items || []).map((it) => it.id);
+    // Agregar el ID de la nueva sección al orden de secciones de los CVs existentes sin forzar sus ítems como activos
     setResumes((prevResumes) =>
       prevResumes.map((r) => {
         const sectionOrder = r.sectionOrder.includes(newSec.id)
           ? r.sectionOrder
           : [...r.sectionOrder, newSec.id];
-        const selectedCustomSectionIds = (r.selectedCustomSectionIds || []).includes(newSec.id)
-          ? r.selectedCustomSectionIds
-          : [...(r.selectedCustomSectionIds || []), newSec.id];
-        const hiddenSections = (r.hiddenSections || []).filter((hId) => hId !== newSec.id);
-        const selectedCustomItemIds = r.selectedCustomItemIds
-          ? Array.from(new Set([...r.selectedCustomItemIds, ...newItemIds]))
-          : newItemIds;
         return {
           ...r,
           sectionOrder,
-          selectedCustomSectionIds,
-          hiddenSections,
-          selectedCustomItemIds,
           updatedAt: new Date().toISOString(),
         };
       })
@@ -866,31 +819,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       customSections: prev.customSections.map((s) => (s.id === id ? { ...s, ...updates } : s)),
     }));
-
-    // Si se agregaron ítems nuevos a la sección personalizada, activarlos por defecto en todos los CVs
-    if (updates.items && Array.isArray(updates.items) && updates.items.length > 0) {
-      const itemIds = updates.items.map((it) => it.id);
-      setResumes((prevResumes) =>
-        prevResumes.map((r) => {
-          if (!r.selectedCustomItemIds) {
-            return {
-              ...r,
-              selectedCustomItemIds: itemIds,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          const nextItems = Array.from(new Set([...r.selectedCustomItemIds, ...itemIds]));
-          if (nextItems.length !== r.selectedCustomItemIds.length) {
-            return {
-              ...r,
-              selectedCustomItemIds: nextItems,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return r;
-        })
-      );
-    }
   }, []);
 
   const deleteCustomSection = useCallback((id: string) => {
@@ -898,7 +826,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       customSections: prev.customSections.filter((s) => s.id !== id),
     }));
-    setResumes((prevResumes) =>
+    setResumes((prev) =>
       prevResumes.map((r) => ({
         ...r,
         sectionOrder: r.sectionOrder.filter((sKey) => sKey !== id),
@@ -1028,6 +956,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           selectedProjectIds: [],
           selectedReferenceIds: [],
           selectedCustomSectionIds: [],
+          selectedCustomItemIds: [],
           sectionOrder: [],
           hiddenSections: [],
           sectionTitleOverrides: {},
@@ -1059,13 +988,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const deleteResume = useCallback((id: string) => {
-    // 1. Record ID as explicitly deleted to prevent ghost reappearance on cloud sync
     StorageService.recordDeletedResumeId(id);
-
-    // 2. Direct, immediate and permanent deletion from Cloud Firestore
     FirebaseSyncService.deleteResumeFromFirestore(id).catch(console.warn);
 
-    // 3. Update local state and persist to localStorage
     setResumes((prev) => {
       const filtered = prev.filter((r) => r.id !== id);
       StorageService.saveResumes(filtered);
@@ -1140,14 +1065,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               return r;
           }
 
-          let currentIds = (r[key] as string[]) || [];
+          let currentIds = Array.isArray(r[key]) ? [...(r[key] as string[])] : [];
           if (itemType === "course") {
             if (!Array.isArray(r.selectedCourseIds) && Array.isArray((r as any).selectedCourses)) {
-              currentIds = (r as any).selectedCourses;
+              currentIds = [...(r as any).selectedCourses];
             }
-          } else if (itemType === "customItem" && !r.selectedCustomItemIds) {
-            // Por defecto todos los elementos de todas las secciones personalizadas están activos
-            currentIds = library.customSections.flatMap((cs) => cs.items.map((it) => it.id));
           }
           const exists = currentIds.includes(itemId);
           const nextIds = exists ? currentIds.filter((id) => id !== itemId) : [...currentIds, itemId];
@@ -1292,8 +1214,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const targetSection = library.customSections.find((cs) => cs.id === sectionId);
           if (!targetSection) return r;
           const sectionItemIds = targetSection.items.map((it) => it.id);
-          const currentSelected =
-            r.selectedCustomItemIds || library.customSections.flatMap((cs) => cs.items.map((it) => it.id));
+          const currentSelected = Array.isArray(r.selectedCustomItemIds) ? r.selectedCustomItemIds : [];
           let nextSelected: string[];
           if (selectAll) {
             nextSelected = Array.from(new Set([...currentSelected, ...sectionItemIds]));
@@ -1450,7 +1371,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectAllCustomItemsInResume,
         aiSettings,
         updateAISettings,
-        // Authentication
         isLoggedIn,
         login,
         loginWithGoogle,
