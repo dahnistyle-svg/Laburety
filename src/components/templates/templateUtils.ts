@@ -175,24 +175,15 @@ export function resolveResumeData(resume: Resume, library: MasterLibrary): Resol
     }
   });
 
-  // Visible sections in order (excluding explicitly hidden sections)
-  const visibleSectionOrder = fullSectionOrder.filter((sKey) => !hidden.has(sKey));
-
-  // Resolve custom sections with item ordering and selection
-  const selectedCustomIds = resume.selectedCustomSectionIds && resume.selectedCustomSectionIds.length > 0
-    ? new Set(resume.selectedCustomSectionIds)
-    : null;
-  const selectedItemIds = resume.selectedCustomItemIds ? new Set(resume.selectedCustomItemIds) : null;
+  // Resolve custom sections with strict item selection (matching standard sections behavior)
+  const selectedItemIds = new Set(resume.selectedCustomItemIds || []);
   const itemsOrderMap = resume.customItemsOrder || {};
 
   const customSections: CustomSection[] = library.customSections
-    .filter((cs) => {
-      // If explicitly hidden in resume, exclude
-      if (hidden.has(cs.id)) return false;
-      return true;
-    })
+    .filter((cs) => !hidden.has(cs.id))
     .map((cs) => {
-      let items = [...cs.items];
+      // Strictly include only items whose IDs are active in selectedCustomItemIds
+      let items = cs.items.filter((it) => selectedItemIds.has(it.id));
 
       // Honor custom item ordering in this resume if defined
       const customOrder = itemsOrderMap[cs.id];
@@ -205,20 +196,22 @@ export function resolveResumeData(resume: Resume, library: MasterLibrary): Resol
         });
       }
 
-      // Filter by selectedCustomItemIds if configured
-      if (selectedItemIds !== null && selectedItemIds.size > 0) {
-        // If this custom section has at least one item present in selectedItemIds, filter by it
-        const hasAnyTracked = cs.items.some((it) => selectedItemIds.has(it.id));
-        if (hasAnyTracked) {
-          items = items.filter((it) => selectedItemIds.has(it.id));
-        }
-      }
-
       return {
         ...cs,
         items,
       };
-    });
+    })
+    // Exclude custom sections that have 0 active items so their header doesn't render empty
+    .filter((cs) => cs.items.length > 0);
+
+  // Visible sections in order (excluding explicitly hidden sections and empty custom sections)
+  const activeCustomSectionIds = new Set(customSections.map((cs) => cs.id));
+  const customLibraryIds = new Set(library.customSections.map((cs) => cs.id));
+  const visibleSectionOrder = fullSectionOrder.filter((sKey) => {
+    if (hidden.has(sKey)) return false;
+    if (customLibraryIds.has(sKey) && !activeCustomSectionIds.has(sKey)) return false;
+    return true;
+  });
 
   // Resolve Professional Title for this resume:
   // 1. Direct custom title on resume (resume.customProfessionalTitle)
@@ -255,7 +248,8 @@ export function resolveResumeData(resume: Resume, library: MasterLibrary): Resol
   const resolvedAboutContent =
     resume.customAboutSummary !== undefined && resume.customAboutSummary.trim().length > 0
       ? resume.customAboutSummary
-      : (selectedVariant?.content || selectedVariant?.summary) && (selectedVariant.content || selectedVariant.summary)!.trim().length > 0
+      : (selectedVariant?.content || selectedVariant?.summary) &&
+        (selectedVariant.content || selectedVariant.summary)!.trim().length > 0
       ? (selectedVariant.content || selectedVariant.summary)!
       : isProfileExplicitlyNone
       ? ""
@@ -339,4 +333,3 @@ export function formatExternalUrl(raw: string): string {
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed.replace(/^\/+/, "")}`;
 }
-
